@@ -38,17 +38,21 @@
       </aside>
     </div>
 
-    <nav class="navegacao" aria-label="Navegação principal">
+  </header>
+
+  <!-- Menu: fica FORA do <header> para poder ficar fixo no topo (ver styles.css) -->
+  <nav class="navegacao" aria-label="Navegação principal">
       <ul class="container menu">
         <li><button type="button" class="menu-botao ativo" data-view="geral" aria-current="page">Visão geral</button></li>
         <li><button type="button" class="menu-botao" data-view="supervisores">Supervisores</button></li>
         <li><button type="button" class="menu-botao" data-view="escolas">Escolas</button></li>
         <li><button type="button" class="menu-botao" data-view="plataformas">Plataformas</button></li>
         <li><button type="button" class="menu-botao" data-view="ifa">Aluno Presente / IFA</button></li>
+        <li><button type="button" class="menu-botao" data-view="paulista">Prova Paulista</button></li>
+        <li><button type="button" class="menu-botao" data-view="graficos">Gráficos</button></li>
         <li><button type="button" class="menu-botao" data-view="sobre">Sobre os dados</button></li>
       </ul>
     </nav>
-  </header>
 
   <main id="conteudo" class="container">
 
@@ -185,10 +189,10 @@
       <h2 id="titulo-escolas">Escolas</h2>
       <p class="descricao">Consulte os indicadores por escola, organize a tabela e acesse a ficha individual.</p>
 
-      <form class="filtros" aria-label="Filtros das escolas">
+      <form class="filtros" onsubmit="return false" aria-label="Filtros das escolas">
         <div class="campo">
-          <label for="busca-escola">Buscar escola</label>
-          <input type="search" id="busca-escola" name="busca-escola" placeholder="Nome ou código da escola">
+          <label for="busca-escola">Escola</label>
+          <select id="busca-escola" name="busca-escola" class="seletor-escola"></select>
         </div>
         <div class="campo">
           <label for="filtro-supervisor">Supervisor(a)</label>
@@ -241,43 +245,107 @@
       <h2 id="titulo-plataformas">Plataformas</h2>
       <p class="descricao">Resultado das escolas em cada plataforma, para identificar pontos fortes e oportunidades de apoio.</p>
 
-      <form class="filtros" aria-label="Filtros das plataformas">
-        <div class="campo">
-          <label for="selecionar-plataforma">Plataforma</label>
-          <select id="selecionar-plataforma" name="selecionar-plataforma">
-            <option value="tarefa">Tarefa SP</option>
-            <option value="redacao">Redação SP</option>
-            <option value="leia">Leia SP</option>
-            <option value="speak">SPeak</option>
-            <option value="alura">Alura</option>
-            <option value="matific">Matific — Anos Finais</option>
-            <option value="khan">Khan Academy</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="busca-plataforma">Buscar escola</label>
-          <input type="search" id="busca-plataforma" name="busca-plataforma" placeholder="Nome ou código da escola">
-        </div>
-      </form>
+      <div class="plataformas-controles">
+        <!-- Os botões das plataformas são criados pelo app.js -->
+        <div id="abas-plataforma" class="abas-plataforma" role="group" aria-label="Escolher plataforma"></div>
+        <form class="filtros" onsubmit="return false" aria-label="Filtro das plataformas">
+          <div class="campo">
+            <label for="busca-plataforma">Escola</label>
+            <select id="busca-plataforma" name="busca-plataforma" class="seletor-escola"></select>
+          </div>
+        </form>
+      </div>
 
       <section class="painel" aria-labelledby="titulo-plataforma-selecionada">
         <header class="painel-cabecalho">
           <h3 id="titulo-plataforma-selecionada">Tarefa SP</h3>
           <p id="descricao-plataforma">Escolas ordenadas pelo indicador da plataforma selecionada.</p>
         </header>
-        <div class="tabela-rolagem" tabindex="0" role="region" aria-label="Tabela: ranking da plataforma">
-          <table>
-            <caption class="sr-only">Ranking das escolas na plataforma selecionada</caption>
-            <thead>
-              <tr>
-                <th scope="col">Posição</th>
-                <th scope="col">Escola</th>
-                <th scope="col">Resultado</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-plataforma"></tbody>
-          </table>
-        </div>
+        <p id="resumo-plataforma" class="resumo-plataforma"></p>
+        <ol id="barras-plataforma" class="barras"></ol>
+        <p id="sem-dado-plataforma" class="sem-dado"></p>
+      </section>
+
+      <section class="calculadora" aria-labelledby="titulo-calc-plataformas">
+        <header class="calculadora-cabecalho">
+          <h3 id="titulo-calc-plataformas">Lançamento semanal das plataformas</h3>
+          <p>Escolha a plataforma, a semana e quem está lançando. Os valores ficam salvos na nuvem para todos.</p>
+        </header>
+
+        <fieldset>
+          <legend>Lançamento por plataforma</legend>
+          <div class="calculadora-controles controles-4-col">
+            <div class="campo">
+              <label for="plat-selecionada">Plataforma</label>
+              <select id="plat-selecionada" name="plat-selecionada"></select>
+            </div>
+            <div class="campo">
+              <label for="semana-plat">Semana</label>
+              <select id="semana-plat" name="semana-plat">
+                <option value="1">Semana 1</option>
+                <option value="2">Semana 2</option>
+                <option value="3">Semana 3</option>
+                <option value="4">Semana 4</option>
+                <option value="5">Semana 5</option>
+                <option value="6">Semana 6</option>
+                <option value="7">Semana 7</option>
+                <option value="8">Semana 8</option>
+                <option value="9">Semana 9</option>
+                <option value="10">Semana 10</option>
+                <option value="11">Semana 11</option>
+                <option value="12">Semana 12</option>
+                <option value="13">Semana 13</option>
+                <option value="14">Semana 14</option>
+                <option value="15">Semana 15</option>
+                <option value="16">Semana 16</option>
+                <option value="17">Semana 17</option>
+                <option value="18">Semana 18</option>
+                <option value="19">Semana 19</option>
+                <option value="20">Semana 20</option>
+                <option value="21">Semana 21</option>
+                <option value="22">Semana 22</option>
+                <option value="23">Semana 23</option>
+                <option value="24">Semana 24</option>
+                <option value="25">Semana 25</option>
+                <option value="26">Semana 26</option>
+                <option value="27">Semana 27</option>
+                <option value="28">Semana 28</option>
+                <option value="29">Semana 29</option>
+                <option value="30">Semana 30</option>
+                <option value="31">Semana 31</option>
+                <option value="32">Semana 32</option>
+                <option value="33">Semana 33</option>
+                <option value="34">Semana 34</option>
+                <option value="35">Semana 35</option>
+                <option value="36">Semana 36</option>
+                <option value="37" selected>Semana 37</option>
+                <option value="38">Semana 38</option>
+                <option value="39">Semana 39</option>
+                <option value="40">Semana 40</option>
+                <option value="41">Semana 41</option>
+                <option value="42">Semana 42</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="responsavel-plat">Quem lança</label>
+              <select id="responsavel-plat" name="responsavel-plat"></select>
+            </div>
+            <div class="campo">
+              <label for="busca-plat-calc">Escola</label>
+              <select id="busca-plat-calc" name="busca-plat-calc" class="seletor-escola"></select>
+            </div>
+          </div>
+
+          <div class="lancamentos-container">
+            <div class="lancamentos-header"><span>Escola</span><span>Valor da semana</span></div>
+            <div class="lancamentos-lista" id="lancamento-grid-plat"></div>
+          </div>
+
+          <div class="acoes-calculadora">
+            <span class="sem-dado">Só são enviados os campos que você alterou.</span>
+            <button type="button" class="botao-primario botao-salvar" id="salvar-plat">Salvar plataforma</button>
+          </div>
+        </fieldset>
       </section>
     </section>
 
@@ -290,11 +358,13 @@
         <header class="calculadora-cabecalho">
           <h3 id="titulo-calculadora">Calculadora semanal do IFA</h3>
           <p>Informe a presença da semana (de 0 a 100). O painel recalcula a média consolidada, a média necessária e a situação de cada escola.</p>
+          <!-- Mensagem de conexão com o Firebase (escrita pelo app.js) -->
+          <p id="status-sincronizacao" class="status-sincronizacao" role="status">Conectando à base Firebase…</p>
         </header>
 
-        <form id="formulario-ifa" aria-label="Lançamento semanal do Aluno Presente">
-          <fieldset>
-            <legend>Lançamento da semana</legend>
+        <fieldset>
+          <legend>Lançamento da semana</legend>
+          <div class="calculadora-controles">
             <div class="campo">
               <label for="semana-calculadora">Semana</label>
               <select id="semana-calculadora" name="semana-calculadora">
@@ -305,16 +375,26 @@
                 <option value="42">Semana 42</option>
               </select>
             </div>
+            <div class="campo">
+              <label for="responsavel-lancamento">Supervisor(a)</label>
+              <select id="responsavel-lancamento" name="responsavel-lancamento"></select>
+            </div>
+            <div class="campo">
+              <label for="busca-calculadora">Escola</label>
+              <select id="busca-calculadora" name="busca-calculadora" class="seletor-escola"></select>
+            </div>
+          </div>
 
-            <div class="lancamentos" id="lancamento-grid"></div>
+          <div class="lancamentos-container">
+            <div class="lancamentos-header"><span>Escola</span><span>Presença da semana (%)</span></div>
+            <div class="lancamentos-lista" id="lancamento-grid"></div>
+          </div>
 
-            <ul class="acoes">
-              <li><button type="button" class="botao-primario" id="calcular-semana">Calcular e salvar semana</button></li>
-              <li><button type="button" class="botao-secundario" id="exportar-lancamentos">Exportar lançamentos</button></li>
-              <li><button type="button" class="botao-secundario" id="restaurar-base">Restaurar base original</button></li>
-            </ul>
-          </fieldset>
-        </form>
+          <div class="acoes-calculadora">
+            <span class="sem-dado">Os lançamentos ficam salvos na nuvem para qualquer pessoa e dispositivo.</span>
+            <button type="button" class="botao-primario botao-salvar" id="calcular-semana">Calcular e salvar semana</button>
+          </div>
+        </fieldset>
       </section>
 
       <aside class="orientacao" aria-label="Como interpretar a situação do IFA">
@@ -326,10 +406,10 @@
         </ul>
       </aside>
 
-      <form class="filtros" aria-label="Filtros de presença e IFA">
+      <form class="filtros" onsubmit="return false" aria-label="Filtros de presença e IFA">
         <div class="campo">
-          <label for="busca-ifa">Buscar escola</label>
-          <input type="search" id="busca-ifa" name="busca-ifa" placeholder="Nome ou código da escola">
+          <label for="busca-ifa">Escola</label>
+          <select id="busca-ifa" name="busca-ifa" class="seletor-escola"></select>
         </div>
         <div class="campo">
           <label for="filtro-situacao-ifa">Situação</label>
@@ -378,6 +458,29 @@
       </section>
     </section>
 
+    <!-- ========== PROVA PAULISTA ========== -->
+    <section id="view-paulista" class="visao" aria-labelledby="titulo-paulista">
+      <h2 id="titulo-paulista">Prova Paulista — desempenho e melhorias</h2>
+      <p class="descricao">
+        Resultados do 1º ao 3º bimestre: escolas que mais cresceram, que se mantiveram na meta, que regrediram e
+        que pedem mais atenção, além da evolução dos componentes na URE.
+      </p>
+      <!-- Preenchido pelo paulista.js -->
+      <div id="area-paulista"></div>
+    </section>
+
+    <!-- ========== GRÁFICOS ========== -->
+    <section id="view-graficos" class="visao" aria-labelledby="titulo-graficos">
+      <h2 id="titulo-graficos">Gráficos</h2>
+      <p class="descricao">
+        Gráficos prontos para apresentações e relatórios. Baixe cada um em PNG ou SVG; eles se atualizam
+        sozinhos quando novos lançamentos são salvos.
+      </p>
+      <p><button type="button" class="botao-secundario" id="baixar-todos">Baixar todos (PNG)</button></p>
+      <!-- Preenchido pelo graficos.js -->
+      <div id="area-graficos"></div>
+    </section>
+
     <!-- ========== SOBRE OS DADOS ========== -->
     <section id="view-sobre" class="visao" aria-labelledby="titulo-sobre">
       <h2 id="titulo-sobre">Sobre os dados</h2>
@@ -405,6 +508,9 @@
           <li>Resultados por plataforma: Tarefa SP, Redação SP, Leia SP, SPeak, Alura, Matific e Khan Academy.</li>
           <li>Presença escolar consolidada e IFA por escola; IFA de referência da URE: 83,3%.</li>
           <li>Média necessária e projeção de fechamento até a semana 42.</li>
+          <li>Prova Paulista (1º ao 3º bimestre): desempenho, crescimento, regressão, pontos de atenção e componentes.</li>
+          <li>Gráficos para download em PNG e SVG.</li>
+          <li>Os lançamentos semanais de presença e de plataformas ficam salvos na nuvem (Firebase), para todos os usuários.</li>
         </ul>
 
         <h3>Como a projeção é calculada</h3>
@@ -448,7 +554,33 @@
     </article>
   </dialog>
 
+  <!-- Firebase (bancos de dados na nuvem). As chaves ficam no app.js. -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- ORDEM IMPORTA: dados -> app -> módulos que usam as funções do app -->
   <script src="dados.js"></script>
+  <script src="dados-paulista.js"></script>
   <script src="app.js"></script>
+  <script src="graficos.js"></script>
+  <script src="analise-paulista.js"></script>
+  <script src="paulista.js"></script>
+
+  <!-- Dropdowns de escola: preenchidos com as escolas do dados.js, em ordem alfabética.
+       O valor de cada opção é "NOME - CÓDIGO", o mesmo texto que o app.js já usa na busca. -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Se o dados.js não carregou (ex.: prévia do index sozinho), não faz nada e não dá erro
+      if (typeof ESCOLAS === "undefined") return;
+      var escolas = ESCOLAS.slice().sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
+      document.querySelectorAll("select.seletor-escola").forEach(function (lista) {
+        lista.add(new Option("Todas as escolas", ""));
+        escolas.forEach(function (e) {
+          var texto = e.nome + " - " + e.codigo;
+          lista.add(new Option(texto, texto));
+        });
+      });
+    });
+  </script>
 </body>
 </html>
