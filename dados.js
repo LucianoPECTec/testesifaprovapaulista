@@ -1,662 +1,240 @@
 /* =========================================================
-   Monitoramento Escolar — URE São José do Rio Preto
-   Arquivo: dados.js  |  Escopo: ESCOLAS REGULARES
+   dados-paulista.js — SOMENTE DADOS da Prova Paulista
    ---------------------------------------------------------
-   Este arquivo guarda SOMENTE dados (nenhuma lógica de tela):
-   1. CONFIG ............ período, semana final e IFA da URE
-   2. PLATAFORMAS ....... nome, campo e casas decimais
-   3. ESCOLAS ........... base consolidada até a semana 37
-   4. LANCAMENTOS_SEMANAIS . presença das semanas 38 a 42
+   Fonte: exports do Escola Total (prova física, URE São José do Rio Preto).
+   Valores em PERCENTUAL (0 a 100). Componente sem nota = não aparece
+   (o painel mostra "Sem dado", nunca zero).
+
+   - ure ........... total da URE em cada bimestre (todas as escolas do export)
+   - resultados .... escolas REGULARES do painel, por código, por bimestre
+   - O 1º bimestre ainda está só no total da URE (o export por escola
+     não foi enviado). Quando chegar, é só incluir "1: { ... }" em cada escola.
    ========================================================= */
 
-const CONFIG = {
-  rede: "Escolas regulares",
-  anoLetivo: 2026,
-  semanasConcluidas: 37,
-  semanaFinal: 42,
-  ifaURE: 83.3,
-  urlSincronizacao: "",
-  periodos: {
-    levantamento: "1ª semana até a semana 37",
-    projecao: "semanas 38 a 42"
-  }
-};
+const PAULISTA = {
+  metaPercentual: 50,      // linha de corte do ">= 50%"
+  pesoQueda: 2,            // no "ponto de atenção", cada ponto de queda pesa 2x
+  grauRegressao: {         // classificação da queda (em pontos percentuais)
+    leve: 2,               // queda até 2 p.p.  = Leve
+    moderada: 5            // de 2 a 5 p.p.     = Moderada | acima de 5 = Forte
+  },
+  nomesBimestres: { 1: "1º Bimestre", 2: "2º Bimestre", 3: "3º Bimestre" },
 
-const PLATAFORMAS = {
-  tarefa: {
-    nome: "Tarefa SP",
-    campo: "tarefa",
-    formato: "percentual",
-    campoNota: "notaTarefa",
-    casas: 2
+  // Nome de cada sigla do export (ajuste aqui se algum nome estiver diferente)
+  nomesComponentes: {
+    MAT: "Matemática", PORT: "Língua Portuguesa", ING: "Inglês", HIST: "História",
+    GEO: "Geografia", CIE: "Ciências", FILO: "Filosofia", SOC: "Sociologia",
+    BIO: "Biologia", "FÍS": "Física", QUI: "Química", FIN: "Educação Financeira",
+    TEC: "Tecnologia e Inovação"
   },
-  redacao: {
-    nome: "Redação SP",
-    campo: "redacao",
-    casas: 2
-  },
-  leia: {
-    nome: "Leia SP",
-    campo: "leia",
-    casas: 2
-  },
-  speak: {
-    nome: "SPeak",
-    campo: "speak",
-    casas: 3
-  },
-  alura: {
-    nome: "Alura",
-    campo: "alura",
-    casas: 2
-  },
-  matific: {
-    nome: "Matific — Anos Finais",
-    campo: "matific",
-    casas: 2
-  },
-  khan: {
-    nome: "Khan Academy",
-    campo: "khan",
-    casas: 2
-  }
-};
 
-const ESCOLAS = [
-  {
-    posicao: 1,
-    nome: "PEDRO ELIAS PROFESSOR",
-    codigo: "28836",
-    top3: 4,
-    top5: 5,
-    top10: 7,
-    posicaoMedia: 8.2,
-    notaFinal: 9.475728155339805,
-    tarefa: 0.6582721153604746,
-    redacao: 0.6998660863742884,
-    leia: 555.89786407767,
-    speak: 0.863,
-    alura: 7.015625,
-    matific: null,
-    khan: 6.128125919388055,
-    notaTarefa: 9.403887362292494,
-    presenca: 0.886,
-    ifa: 83.2,
-    supervisor: "WAGNER HENRIQUE DA SILVA"
+  /* ---------- Total da URE por bimestre ---------- */
+  ure: {
+    1: { alunos: 31884, participacao: 95.25, geral: 49.13,
+      componentes: { "MAT": 38.52, "PORT": 56.3, "ING": 52.78, "HIST": 50.04, "GEO": 54.9, "CIE": 47.89, "FILO": 45.53, "SOC": 48.18, "BIO": 47.08, "FÍS": 37.15, "QUI": 43.97, "FIN": 59.53, "TEC": 56.02 } },
+    2: { alunos: 31224, participacao: 94.99, geral: 46.61,
+      componentes: { "MAT": 40.9, "PORT": 52.56, "ING": 48.54, "HIST": 44.84, "GEO": 50.21, "CIE": 47.13, "FILO": 40.8, "SOC": 56.8, "BIO": 48.47, "FÍS": 40.63, "QUI": 38.79, "FIN": 46.96, "TEC": 39.91 } },
+    3: { alunos: 30471, participacao: 93.46, geral: 52.97,
+      componentes: { "MAT": 50.77, "PORT": 61.1, "ING": 50.72, "HIST": 47.48, "GEO": 52.39, "CIE": 48.84, "FILO": 41.27, "SOC": 44.92, "BIO": 53.13, "FÍS": 45.28, "QUI": 43.93, "FIN": 55.42, "TEC": 42.72 } }
   },
-  {
-    posicao: 2,
-    nome: "IRMAOS ISMAEL",
-    codigo: "27765",
-    top3: 3,
-    top5: 6,
-    top10: 8,
-    posicaoMedia: 5.7,
-    notaFinal: 9.839803306466386,
-    tarefa: 0.499590991473178,
-    redacao: 0.7540200242718449,
-    leia: 658.9170631067956,
-    speak: 0.707,
-    alura: 5.894176136363637,
-    matific: 3.265067027148812,
-    khan: 4.828438228438229,
-    notaTarefa: 7.137332088867836,
-    presenca: 0.912,
-    ifa: 84.0,
-    supervisor: "SOLANGE MARIA DA SILVA"
-  },
-  {
-    posicao: 3,
-    nome: "CARLOS CASTILHO PROFESSOR",
-    codigo: "28241",
-    top3: 2,
-    top5: 3,
-    top10: 4,
-    posicaoMedia: 13.0,
-    notaFinal: 9.831734735973598,
-    tarefa: 0.6081055806676089,
-    redacao: 0.8206555700732829,
-    leia: 574.2487479406918,
-    speak: 0.465,
-    alura: 5.495204207920792,
-    matific: null,
-    khan: 1.048239291598023,
-    notaTarefa: 8.687222580965843,
-    presenca: 0.848,
-    ifa: 82.6,
-    supervisor: "MAURA CRISTINA DA SILVA"
-  },
-  {
-    posicao: 4,
-    nome: "ZULMIRA DA SILVA SALLES PROFESSORA",
-    codigo: "28605",
-    top3: 2,
-    top5: 3,
-    top10: 3,
-    posicaoMedia: 13.8,
-    notaFinal: 7.562974401057127,
-    tarefa: 0.5262559649036374,
-    redacao: 0.8480533926585093,
-    leia: 820.6991290322582,
-    speak: 0.299,
-    alura: 4.955233895705521,
-    matific: 1.732355816226784,
-    khan: null,
-    notaTarefa: 7.517942355766244,
-    presenca: 0.901,
-    ifa: 84.0,
-    supervisor: "EDMAR MONTELLI"
-  },
-  {
-    posicao: 5,
-    nome: "AUREA DE OLIVEIRA PROFESSORA",
-    codigo: "28666",
-    top3: 2,
-    top5: 2,
-    top10: 5,
-    posicaoMedia: 8.9,
-    notaFinal: 9.706111458493067,
-    tarefa: 0.5200575745745746,
-    redacao: 0.6775413711583925,
-    leia: 733.2967983789257,
-    speak: 0.296,
-    alura: 5.6684632120253164,
-    matific: 4.914797323888233,
-    khan: 3.317400812246173,
-    notaTarefa: 7.488796340139636,
-    presenca: 0.873,
-    ifa: 83.1,
-    supervisor: "MARIA LUCIA SOLER"
-  },
-  {
-    posicao: 6,
-    nome: "ALZIRA SALOMAO PROFESSORA",
-    codigo: "917291",
-    top3: 2,
-    top5: 2,
-    top10: 5,
-    posicaoMedia: 11.0,
-    notaFinal: 8.218458799119242,
-    tarefa: 0.6016015128729815,
-    redacao: 0.914102564102564,
-    leia: 591.9599786324782,
-    speak: 0.225,
-    alura: 5.610899390243903,
-    matific: 2.5692178192178194,
-    khan: null,
-    notaTarefa: 8.594307326756878,
-    presenca: 0.939,
-    ifa: 84.0,
-    supervisor: "MAURA CRISTINA DA SILVA"
-  },
-  {
-    posicao: 7,
-    nome: "PARQUE NOVA ESPERANCA",
-    codigo: "565064",
-    top3: 2,
-    top5: 2,
-    top10: 3,
-    posicaoMedia: 14.2,
-    notaFinal: 7.466897404295051,
-    tarefa: 0.47768742571124356,
-    redacao: 0.6583237437667817,
-    leia: 973.6538765822781,
-    speak: 0.137,
-    alura: 6.704264322916667,
-    matific: 2.340844889573704,
-    khan: 2.1032258064516127,
-    notaTarefa: 6.826016217834641,
-    presenca: 0.883,
-    ifa: 84.0,
-    supervisor: "ELISA REGINA SIGNORINI GODINHO"
-  },
-  {
-    posicao: 8,
-    nome: "CLEMENTE MARTON SEGURA PADRE",
-    codigo: "28745",
-    top3: 1,
-    top5: 2,
-    top10: 4,
-    posicaoMedia: 13.7,
-    notaFinal: 7.639820050490081,
-    tarefa: 0.5591812684512343,
-    redacao: 0.560025918944392,
-    leia: 731.7101225259197,
-    speak: 0.536,
-    alura: 5.024989111498257,
-    matific: 1.334271507646121,
-    khan: 4.93807959109164,
-    notaTarefa: 7.999327972663222,
-    presenca: 0.86,
-    ifa: 82.7,
-    supervisor: "LUCIANE GUIDUCE NOGUEIRA"
-  },
-  {
-    posicao: 9,
-    nome: "PARQUE DAS AROEIRAS II",
-    codigo: "565052",
-    top3: 1,
-    top5: 2,
-    top10: 3,
-    posicaoMedia: 12.7,
-    notaFinal: 7.661799261538462,
-    tarefa: 0.4868702335447038,
-    redacao: 0.6360512820512823,
-    leia: 619.2640923076927,
-    speak: 0.359,
-    alura: 6.078433794466403,
-    matific: 1.7753890253890259,
-    khan: 4.866137099146807,
-    notaTarefa: 6.947563362723199,
-    presenca: 0.876,
-    ifa: 84.0,
-    supervisor: "ANDERSON RIZZUTTI PRESTES"
-  },
-  {
-    posicao: 10,
-    nome: "GONCALVES MONSENHOR",
-    codigo: "28708",
-    top3: 1,
-    top5: 2,
-    top10: 3,
-    posicaoMedia: 17.4,
-    notaFinal: 9.127871621621622,
-    tarefa: 0.6303360215298219,
-    redacao: 0.627021796278258,
-    leia: 329.17813495782565,
-    speak: 0.657,
-    alura: 3.3836148648648647,
-    matific: null,
-    khan: 2.8097185538610088,
-    notaTarefa: 9.004800307568885,
-    presenca: 0.843,
-    ifa: 82.6,
-    supervisor: "MARIA LUCIA SOLER"
-  },
-  {
-    posicao: 11,
-    nome: "OSCAR DE BARROS SERRA DORIA DOUTOR",
-    codigo: "911461",
-    top3: 1,
-    top5: 2,
-    top10: 3,
-    posicaoMedia: 14.0,
-    notaFinal: 9.380498673568354,
-    tarefa: 0.48172506118749714,
-    redacao: 0.6965617715617715,
-    leia: 329.7509090909093,
-    speak: 0.215,
-    alura: 5.877068014705882,
-    matific: 3.9016934046345817,
-    khan: 1.5351562499999998,
-    notaTarefa: 6.896602363356579,
-    presenca: 0.869,
-    ifa: 84.0,
-    supervisor: "DINAMARCA DA SILVA"
-  },
-  {
-    posicao: 12,
-    nome: "ALBERTO ANDALO",
-    codigo: "28538",
-    top3: 1,
-    top5: 1,
-    top10: 4,
-    posicaoMedia: 14.7,
-    notaFinal: 9.374955727078323,
-    tarefa: 0.5935617793576473,
-    redacao: 0.45434969853574503,
-    leia: 587.1516925064601,
-    speak: 1.241,
-    alura: 4.970797413793103,
-    matific: null,
-    khan: 3.102470930232558,
-    notaTarefa: 8.479453990823533,
-    presenca: 0.849,
-    ifa: 82.0,
-    supervisor: "DINAMARCA DA SILVA"
-  },
-  {
-    posicao: 13,
-    nome: "CELSO ABBADE MOURAO",
-    codigo: "918337",
-    top3: 1,
-    top5: 1,
-    top10: 3,
-    posicaoMedia: 17.7,
-    notaFinal: 8.590131137160727,
-    tarefa: 0.419045701022053,
-    redacao: 0.61625,
-    leia: 637.790977777778,
-    speak: 0.152,
-    alura: 4.3326348396501455,
-    matific: 5.286676286676287,
-    khan: 2.5631085631085635,
-    notaTarefa: 5.917960478873046,
-    presenca: 0.786,
-    ifa: 83.0,
-    supervisor: "BEN HUR ULISSES DA SILVA"
-  },
-  {
-    posicao: 14,
-    nome: "BENTO ABELAIRA GOMES PROFESSOR",
-    codigo: "918313",
-    top3: 1,
-    top5: 1,
-    top10: 2,
-    posicaoMedia: 15.9,
-    notaFinal: 7.639644532987466,
-    tarefa: 0.5113294652292645,
-    redacao: 0.7366832386363633,
-    leia: 1411.1847159090933,
-    speak: 0.215,
-    alura: 4.2086239270386265,
-    matific: 1.8872889197316678,
-    khan: 2.075472772841194,
-    notaTarefa: 7.31062966624677,
-    presenca: 0.85,
-    ifa: 84.0,
-    supervisor: "ADRIANA APARECIDA CAMPANHOLA DO PRADO"
-  },
-  {
-    posicao: 15,
-    nome: "JOSE FELICIO MIZIARA PROFESSOR",
-    codigo: "28927",
-    top3: 1,
-    top5: 1,
-    top10: 2,
-    posicaoMedia: 17.2,
-    notaFinal: 7.705669205393672,
-    tarefa: 0.6254904498488157,
-    redacao: 0.5624999999999999,
-    leia: 570.6968548387098,
-    speak: 0.368,
-    alura: 4.38114406779661,
-    matific: 1.2394065132654342,
-    khan: 1.2720207253886013,
-    notaTarefa: 8.971545646781008,
-    presenca: 0.868,
-    ifa: 84.0,
-    supervisor: "SOLANGE MARIA DA SILVA"
-  },
-  {
-    posicao: 16,
-    nome: "ADAHIR GUIMARAES FOGACA PROFESSOR",
-    codigo: "28685",
-    top3: 1,
-    top5: 1,
-    top10: 1,
-    posicaoMedia: 16.4,
-    notaFinal: 8.351207636939229,
-    tarefa: 0.45845534410318123,
-    redacao: 0.653206467084397,
-    leia: 415.20119904076773,
-    speak: 0.346,
-    alura: 5.315311418685121,
-    matific: 1.7918414918414918,
-    khan: 6.582902070063695,
-    notaTarefa: 6.356771830189184,
-    presenca: 0.843,
-    ifa: 84.0,
-    supervisor: "JULIANA PAVANI DE PAULA BUENO GUIMARÃES"
-  },
-  {
-    posicao: 17,
-    nome: "NOEMIA BUENO DO VALLE PROFESSORA",
-    codigo: "28551",
-    top3: 0,
-    top5: 1,
-    top10: 5,
-    posicaoMedia: 14.4,
-    notaFinal: 7.395291488095238,
-    tarefa: 0.5354645013854645,
-    redacao: 0.7516420361247949,
-    leia: 775.3188095238104,
-    speak: 0.248,
-    alura: 3.4276785714285714,
-    matific: 3.1298701298701306,
-    khan: null,
-    notaTarefa: 7.6494928769352075,
-    presenca: 0.89,
-    ifa: 84.0,
-    supervisor: "LUCIANE GUIDUCE NOGUEIRA"
-  },
-  {
-    posicao: 18,
-    nome: "MARIA DE LOURDES MURAD DE CAMARGO PROFESSORA",
-    codigo: "907169",
-    top3: 0,
-    top5: 1,
-    top10: 4,
-    posicaoMedia: 14.3,
-    notaFinal: 9.131881594202898,
-    tarefa: 0.5329614520801885,
-    redacao: 0.6073222565684579,
-    leia: 533.3895054095831,
-    speak: 0.159,
-    alura: 5.813545150501672,
-    matific: 3.669055313568451,
-    khan: null,
-    notaTarefa: 7.613734315431266,
-    presenca: 0.875,
-    ifa: 84.0,
-    supervisor: null
-  },
-  {
-    posicao: 19,
-    nome: "DINORATH DO VALLE PROFESSORA",
-    codigo: "436239",
-    top3: 0,
-    top5: 1,
-    top10: 3,
-    posicaoMedia: 11.6,
-    notaFinal: 8.175854572753696,
-    tarefa: 0.6113991422514657,
-    redacao: 0.673817920585162,
-    leia: 619.7283699059557,
-    speak: 0.255,
-    alura: 5.446717271293376,
-    matific: 1.9332096474953622,
-    khan: 3.2394519356241838,
-    notaTarefa: 8.75925178558556,
-    presenca: 0.885,
-    ifa: 82.9,
-    supervisor: "JOSEFA BASILIO DA SILVEIRA"
-  },
-  {
-    posicao: 20,
-    nome: "FRANCISCO PURITA PROFESSOR",
-    codigo: "28617",
-    top3: 0,
-    top5: 2,
-    top10: 2,
-    posicaoMedia: 19.3,
-    notaFinal: 6.694762536585365,
-    tarefa: 0.4740333005527253,
-    redacao: 0.5974973275482612,
-    leia: 444.57481481481506,
-    speak: 0.142,
-    alura: 6.043035714285714,
-    matific: 1.1664544605721077,
-    khan: 1.2575757575757573,
-    notaTarefa: 6.792951149860919,
-    presenca: 0.898,
-    ifa: 84.0,
-    supervisor: "WAGNER HENRIQUE DA SILVA"
-  },
-  {
-    posicao: 21,
-    nome: "DARCY FEDERICI PACHECO PROFESSOR",
-    codigo: "914411",
-    top3: 0,
-    top5: 1,
-    top10: 2,
-    posicaoMedia: 16.1,
-    notaFinal: 8.403347158342838,
-    tarefa: 0.4523520753648939,
-    redacao: 0.6385256069466596,
-    leia: 361.7472748538012,
-    speak: 0.178,
-    alura: 5.326669269230769,
-    matific: 3.6460348162475817,
-    khan: 2.153058361391694,
-    notaTarefa: 6.5615756994250445,
-    presenca: 0.886,
-    ifa: 83.0,
-    supervisor: "EDMAR MONTELLI"
-  },
-  {
-    posicao: 22,
-    nome: "AURELIANO MENDONCA PROFESSOR",
-    codigo: "35828",
-    top3: 0,
-    top5: 1,
-    top10: 2,
-    posicaoMedia: 16.3,
-    notaFinal: 8.24540966435268,
-    tarefa: 0.46203497555970974,
-    redacao: 0.7566734279918866,
-    leia: 472.4719294117647,
-    speak: 0.301,
-    alura: 4.678784013605442,
-    matific: 0.8029465930018416,
-    khan: 3.7884997516145056,
-    notaTarefa: 6.611468704315295,
-    presenca: 0.856,
-    ifa: 84.0,
-    supervisor: "DULCE REGINA DE CARVALHO CENEVIVA"
-  },
-  {
-    posicao: 23,
-    nome: "WALDEMIRO NAFFAH DOUTOR",
-    codigo: "908150",
-    top3: 0,
-    top5: 1,
-    top10: 2,
-    posicaoMedia: 18.2,
-    notaFinal: 6.650598884861258,
-    tarefa: 0.4750905966259365,
-    redacao: 0.5857507470119521,
-    leia: 778.8219023904384,
-    speak: 0.136,
-    alura: 5.772991741741742,
-    matific: 1.3223076923076924,
-    khan: 2.9776579352850545,
-    notaTarefa: 6.842996597426609,
-    presenca: 0.857,
-    ifa: 82.6,
-    supervisor: "ANDERSON RIZZUTTI PRESTES"
-  },
-  {
-    posicao: 24,
-    nome: "ALZIRA VALLE ROLEMBERG PROFESSORA",
-    codigo: "908149",
-    top3: 0,
-    top5: 0,
-    top10: 2,
-    posicaoMedia: 15.0,
-    notaFinal: 8.217141637459823,
-    tarefa: 0.49404756658316457,
-    redacao: 0.727008517495396,
-    leia: 622.1078360957637,
-    speak: 0.18,
-    alura: 4.2370049504950495,
-    matific: 2.399888455103179,
-    khan: 3.031898041474653,
-    notaTarefa: 7.092536018612051,
-    presenca: 0.858,
-    ifa: 82.8,
-    supervisor: "ADRIANA APARECIDA CAMPANHOLA DO PRADO"
-  },
-  {
-    posicao: 25,
-    nome: "FRANCISCO MARQUES PINTO",
-    codigo: "27820",
-    top3: 0,
-    top5: 0,
-    top10: 2,
-    posicaoMedia: 17.0,
-    notaFinal: 8.083376002071947,
-    tarefa: 0.5129565566455083,
-    redacao: 0.4883429526123937,
-    leia: 514.9948481166466,
-    speak: 0.396,
-    alura: 4.858601485148514,
-    matific: 1.8935959087092593,
-    khan: 4.533717456252667,
-    notaTarefa: 7.317602016333853,
-    presenca: 0.83,
-    ifa: 83.4,
-    supervisor: "MAURA CRISTINA DA SILVA"
-  },
-  {
-    posicao: 26,
-    nome: "SONIA MARIA VENTURELLI PROFESSORA",
-    codigo: "919688",
-    top3: 0,
-    top5: 0,
-    top10: 1,
-    posicaoMedia: 19.6,
-    notaFinal: 6.602709252124444,
-    tarefa: 0.46192383019918987,
-    redacao: 0.6565609452736317,
-    leia: 364.5728358208954,
-    speak: 0.138,
-    alura: 5.4352978187919465,
-    matific: 2.576282051282052,
-    khan: 1.6246031746031744,
-    notaTarefa: 6.686153225457613,
-    presenca: 0.859,
-    ifa: 82.4,
-    supervisor: "DULCE REGINA DE CARVALHO CENEVIVA"
-  },
-  {
-    posicao: 27,
-    nome: "JOAO DEOCLECIO DA SILVA RAMOS PROFESSOR DOUTOR",
-    codigo: "28859",
-    top3: 0,
-    top5: 0,
-    top10: 1,
-    posicaoMedia: 23.1,
-    notaFinal: 6.200664777184209,
-    tarefa: 0.3803057901380965,
-    redacao: 0.406425702811245,
-    leia: 407.7591325301205,
-    speak: 0.424,
-    alura: 2.6244103773584904,
-    matific: 1.59992486851991,
-    khan: 2.1935483870967736,
-    notaTarefa: 5.441861932413577,
-    presenca: 0.848,
-    ifa: 82.7,
-    supervisor: "WAGNER HENRIQUE DA SILVA"
-  },
-  {
-    posicao: 28,
-    nome: "ANTONIO DE BARROS SERRA PROFESSOR",
-    codigo: "28769",
-    top3: 0,
-    top5: 0,
-    top10: 0,
-    posicaoMedia: 20.2,
-    notaFinal: 7.732457692847344,
-    tarefa: 0.42973861369722516,
-    redacao: 0.5016104714912281,
-    leia: 504.34699561403545,
-    speak: 0.147,
-    alura: 5.420215201465202,
-    matific: 2.1036851566512587,
-    khan: 3.0904829545454544,
-    notaTarefa: 6.184281741532726,
-    presenca: 0.817,
-    ifa: 82.9,
-    supervisor: "SANDRA REGINA PARREIRA RIBEIRO"
-  }
-];
 
-const LANCAMENTOS_SEMANAIS = {
-  38: {},
-  39: {},
-  40: {},
-  41: {},
-  42: {}
+  /* ---------- Escolas regulares do painel (2º e 3º bimestre) ---------- */
+  resultados: {
+    // PEDRO ELIAS PROFESSOR
+    "28836": {
+      2: { alunos: 210, participacao: 96.76, geral: 39.59,
+        componentes: { "MAT": 32.39, "PORT": 45.74, "ING": 41.78, "HIST": 35.57, "GEO": 52.36, "FILO": 29.73, "SOC": 58.02, "BIO": 42.23, "FÍS": 34.88, "QUI": 36.81, "FIN": 38.04 } },
+      3: { alunos: 203, participacao: 94.04, geral: 50.43,
+        componentes: { "MAT": 41.73, "PORT": 58.33, "ING": 49.32, "HIST": 44.07, "GEO": 52.97, "FILO": 32.5, "SOC": 49.62, "BIO": 48.7, "FÍS": 37.78, "QUI": 40.92, "FIN": 61.49 } }
+    },
+    // IRMAOS ISMAEL
+    "27765": {
+      2: { alunos: 430, participacao: 95.21, geral: 45.8,
+        componentes: { "MAT": 37.6, "PORT": 55.24, "ING": 52.07, "HIST": 44.52, "GEO": 49.92, "CIE": 41.83, "FILO": 30.53, "SOC": 72.0, "BIO": 44.08, "FÍS": 30.67, "QUI": 37.76, "FIN": 46.31, "TEC": 41.45 } },
+      3: { alunos: 409, participacao: 97.22, geral: 52.88,
+        componentes: { "MAT": 47.69, "PORT": 64.91, "ING": 63.53, "HIST": 45.0, "GEO": 55.57, "CIE": 49.85, "FILO": 31.13, "SOC": 38.57, "BIO": 41.59, "FÍS": 30.64, "QUI": 26.7, "FIN": 52.9, "TEC": 56.2 } }
+    },
+    // CARLOS CASTILHO PROFESSOR
+    "28241": {
+      2: { alunos: 627, participacao: 89.1, geral: 39.62,
+        componentes: { "MAT": 36.03, "PORT": 42.43, "ING": 42.43, "HIST": 36.13, "GEO": 50.86, "FILO": 32.08, "SOC": 53.94, "BIO": 45.3, "FÍS": 34.38, "QUI": 31.62, "FIN": 42.3 } },
+      3: { alunos: 601, participacao: 86.41, geral: 42.67,
+        componentes: { "MAT": 35.55, "PORT": 49.59, "ING": 41.01, "HIST": 43.82, "GEO": 45.95, "FILO": 33.61, "SOC": 36.63, "BIO": 37.91, "FÍS": 29.02, "QUI": 28.92, "FIN": 48.59 } }
+    },
+    // ZULMIRA DA SILVA SALLES PROFESSORA
+    "28605": {
+      2: { alunos: 605, participacao: 98.0, geral: 45.84,
+        componentes: { "MAT": 37.05, "PORT": 54.93, "ING": 50.05, "HIST": 44.15, "GEO": 46.6, "CIE": 44.1, "FIN": 46.17, "TEC": 38.18 } },
+      3: { alunos: 582, participacao: 96.58, geral: 49.4,
+        componentes: { "MAT": 44.21, "PORT": 62.68, "ING": 55.12, "HIST": 39.95, "GEO": 45.08, "CIE": 47.29, "FIN": 47.33, "TEC": 36.1 } }
+    },
+    // AUREA DE OLIVEIRA PROFESSORA
+    "28666": {
+      2: { alunos: 1052, participacao: 98.61, geral: 45.66,
+        componentes: { "MAT": 40.03, "PORT": 50.72, "ING": 44.16, "HIST": 41.96, "GEO": 57.31, "CIE": 49.99, "FILO": 45.04, "SOC": 60.25, "BIO": 46.89, "FÍS": 36.69, "QUI": 38.39, "FIN": 46.76, "TEC": 41.57 } },
+      3: { alunos: 1035, participacao: 96.62, geral: 51.1,
+        componentes: { "MAT": 48.8, "PORT": 58.11, "ING": 47.0, "HIST": 45.72, "GEO": 53.94, "CIE": 49.99, "FILO": 38.51, "SOC": 40.64, "BIO": 49.12, "FÍS": 40.63, "QUI": 38.29, "FIN": 56.89, "TEC": 42.54 } }
+    },
+    // ALZIRA SALOMAO PROFESSORA
+    "917291": {
+      2: { alunos: 471, participacao: 99.32, geral: 50.87,
+        componentes: { "MAT": 42.24, "PORT": 56.07, "ING": 53.77, "HIST": 51.92, "GEO": 48.7, "CIE": 55.73, "FIN": 56.36, "TEC": 38.67 } },
+      3: { alunos: 460, participacao: 98.98, geral: 57.55,
+        componentes: { "MAT": 49.79, "PORT": 63.93, "ING": 56.18, "HIST": 55.81, "GEO": 58.92, "CIE": 59.8, "FIN": 59.08, "TEC": 52.08 } }
+    },
+    // PARQUE NOVA ESPERANCA
+    "565064": {
+      2: { alunos: 730, participacao: 96.21, geral: 41.68,
+        componentes: { "MAT": 40.65, "PORT": 43.79, "ING": 40.89, "HIST": 38.77, "GEO": 39.17, "CIE": 45.64, "FILO": 35.25, "SOC": 49.53, "BIO": 44.02, "FÍS": 37.24, "QUI": 38.7, "FIN": 44.3, "TEC": 42.06 } },
+      3: { alunos: 694, participacao: 94.17, geral: 49.37,
+        componentes: { "MAT": 50.3, "PORT": 54.62, "ING": 45.96, "HIST": 43.96, "GEO": 46.5, "CIE": 47.82, "FILO": 42.14, "SOC": 54.81, "BIO": 51.48, "FÍS": 43.11, "QUI": 43.09, "FIN": 52.84, "TEC": 43.22 } }
+    },
+    // CLEMENTE MARTON SEGURA PADRE
+    "28745": {
+      2: { alunos: 1046, participacao: 94.97, geral: 40.8,
+        componentes: { "MAT": 32.96, "PORT": 49.01, "ING": 44.4, "HIST": 41.8, "GEO": 46.38, "CIE": 37.1, "FILO": 38.18, "SOC": 43.96, "BIO": 36.43, "FÍS": 29.98, "QUI": 30.04, "FIN": 40.76, "TEC": 36.18 } },
+      3: { alunos: 1050, participacao: 92.42, geral: 44.9,
+        componentes: { "MAT": 42.19, "PORT": 56.22, "ING": 42.14, "HIST": 40.2, "GEO": 44.88, "CIE": 40.35, "FILO": 34.06, "SOC": 31.85, "BIO": 42.31, "FÍS": 34.02, "QUI": 31.31, "FIN": 48.63, "TEC": 40.08 } }
+    },
+    // PARQUE DAS AROEIRAS II
+    "565052": {
+      2: { alunos: 646, participacao: 96.69, geral: 46.18,
+        componentes: { "MAT": 40.13, "PORT": 52.77, "ING": 45.89, "HIST": 47.21, "GEO": 50.24, "CIE": 44.32, "FILO": 38.64, "SOC": 53.33, "BIO": 46.91, "FÍS": 41.28, "QUI": 38.2, "FIN": 45.92, "TEC": 33.44 } },
+      3: { alunos: 635, participacao: 96.09, geral: 54.05,
+        componentes: { "MAT": 50.33, "PORT": 63.28, "ING": 52.48, "HIST": 49.75, "GEO": 52.1, "CIE": 46.56, "FILO": 37.83, "SOC": 53.9, "BIO": 58.64, "FÍS": 54.45, "QUI": 50.1, "FIN": 55.95, "TEC": 32.74 } }
+    },
+    // GONCALVES MONSENHOR
+    "28708": {
+      2: { alunos: 1132, participacao: 90.05, geral: 49.11,
+        componentes: { "MAT": 44.29, "PORT": 50.68, "ING": 51.11, "HIST": 50.0, "GEO": 60.49, "FILO": 48.81, "SOC": 57.51, "BIO": 50.35, "FÍS": 46.58, "QUI": 42.26, "FIN": 51.56 } },
+      3: { alunos: 1113, participacao: 88.48, geral: 58.47,
+        componentes: { "MAT": 59.53, "PORT": 57.57, "ING": 51.1, "HIST": 54.91, "GEO": 54.74, "FILO": 48.71, "SOC": 45.05, "BIO": 60.13, "FÍS": 53.87, "QUI": 54.56, "FIN": 63.76 } }
+    },
+    // OSCAR DE BARROS SERRA DORIA DOUTOR
+    "911461": {
+      2: { alunos: 609, participacao: 89.78, geral: 45.32,
+        componentes: { "MAT": 40.1, "PORT": 50.08, "ING": 46.12, "HIST": 46.66, "GEO": 45.0, "CIE": 46.24, "FILO": 45.97, "SOC": 52.12, "BIO": 46.98, "FÍS": 36.61, "QUI": 36.52, "FIN": 50.42, "TEC": 44.44 } },
+      3: { alunos: 571, participacao: 94.69, geral: 48.71,
+        componentes: { "MAT": 48.29, "PORT": 56.74, "ING": 49.72, "HIST": 43.67, "GEO": 47.6, "CIE": 46.01, "FILO": 37.6, "SOC": 51.82, "BIO": 43.54, "FÍS": 36.93, "QUI": 33.94, "FIN": 50.3, "TEC": 49.31 } }
+    },
+    // ALBERTO ANDALO
+    "28538": {
+      2: { alunos: 909, participacao: 92.19, geral: 43.68,
+        componentes: { "MAT": 39.4, "PORT": 46.31, "ING": 45.14, "HIST": 40.86, "GEO": 54.91, "FILO": 38.58, "SOC": 59.08, "BIO": 46.77, "FÍS": 41.85, "QUI": 37.03, "FIN": 45.28 } },
+      3: { alunos: 863, participacao: 91.41, geral: 55.01,
+        componentes: { "MAT": 57.33, "PORT": 55.27, "ING": 47.7, "HIST": 47.95, "GEO": 52.79, "FILO": 42.11, "SOC": 45.93, "BIO": 58.07, "FÍS": 51.76, "QUI": 54.36, "FIN": 60.87 } }
+    },
+    // CELSO ABBADE MOURAO
+    "918337": {
+      2: { alunos: 974, participacao: 91.83, geral: 36.79,
+        componentes: { "MAT": 30.69, "PORT": 42.64, "ING": 39.55, "HIST": 35.11, "GEO": 39.26, "CIE": 35.99, "FILO": 30.98, "SOC": 41.13, "BIO": 38.32, "FÍS": 28.9, "QUI": 31.93, "FIN": 40.92, "TEC": 36.03 } },
+      3: { alunos: 906, participacao: 96.39, geral: 39.87,
+        componentes: { "MAT": 36.37, "PORT": 50.36, "ING": 37.5, "HIST": 34.6, "GEO": 40.33, "CIE": 36.44, "FILO": 30.93, "SOC": 28.91, "BIO": 38.0, "FÍS": 27.87, "QUI": 24.71, "FIN": 42.33, "TEC": 35.16 } }
+    },
+    // BENTO ABELAIRA GOMES PROFESSOR
+    "918313": {
+      2: { alunos: 1207, participacao: 94.46, geral: 39.76,
+        componentes: { "MAT": 33.53, "PORT": 47.22, "ING": 42.11, "HIST": 38.44, "GEO": 43.05, "CIE": 40.1, "FILO": 33.19, "SOC": 53.33, "BIO": 37.08, "FÍS": 31.59, "QUI": 29.87, "FIN": 39.84, "TEC": 32.9 } },
+      3: { alunos: 1036, participacao: 91.34, geral: 49.06,
+        componentes: { "MAT": 50.22, "PORT": 54.44, "ING": 41.13, "HIST": 40.54, "GEO": 41.98, "CIE": 45.05, "FILO": 30.51, "SOC": 32.66, "BIO": 51.74, "FÍS": 46.21, "QUI": 46.65, "FIN": 53.95, "TEC": 46.21 } }
+    },
+    // JOSE FELICIO MIZIARA PROFESSOR
+    "28927": {
+      2: { alunos: 997, participacao: 94.25, geral: 48.06,
+        componentes: { "MAT": 39.22, "PORT": 56.08, "ING": 51.05, "HIST": 45.58, "GEO": 55.01, "CIE": 47.21, "FILO": 44.22, "SOC": 64.81, "BIO": 50.02, "FÍS": 43.65, "QUI": 39.23, "FIN": 44.39, "TEC": 46.33 } },
+      3: { alunos: 991, participacao: 93.6, geral: 53.13,
+        componentes: { "MAT": 50.62, "PORT": 62.34, "ING": 50.79, "HIST": 48.09, "GEO": 54.06, "CIE": 48.65, "FILO": 39.96, "SOC": 40.67, "BIO": 51.6, "FÍS": 42.14, "QUI": 41.2, "FIN": 55.45, "TEC": 41.72 } }
+    },
+    // ADAHIR GUIMARAES FOGACA PROFESSOR
+    "28685": {
+      2: { alunos: 890, participacao: 89.94, geral: 41.8,
+        componentes: { "MAT": 36.29, "PORT": 48.35, "ING": 43.52, "HIST": 41.54, "GEO": 42.27, "CIE": 41.44, "FILO": 38.3, "SOC": 48.14, "BIO": 39.66, "FÍS": 37.33, "QUI": 36.62, "FIN": 42.71, "TEC": 33.0 } },
+      3: { alunos: 830, participacao: 91.88, geral: 48.38,
+        componentes: { "MAT": 47.57, "PORT": 55.79, "ING": 46.07, "HIST": 44.71, "GEO": 45.47, "CIE": 42.81, "FILO": 39.88, "SOC": 30.13, "BIO": 52.17, "FÍS": 47.14, "QUI": 45.72, "FIN": 47.78, "TEC": 36.78 } }
+    },
+    // NOEMIA BUENO DO VALLE PROFESSORA
+    "28551": {
+      2: { alunos: 830, participacao: 98.57, geral: 49.55,
+        componentes: { "MAT": 39.12, "PORT": 58.8, "ING": 57.96, "HIST": 46.15, "GEO": 51.04, "CIE": 49.26, "FIN": 50.37, "TEC": 39.16 } },
+      3: { alunos: 805, participacao: 97.72, geral: 53.62,
+        componentes: { "MAT": 46.48, "PORT": 67.86, "ING": 58.9, "HIST": 43.96, "GEO": 52.98, "CIE": 49.66, "FIN": 51.92, "TEC": 41.9 } }
+    },
+    // MARIA DE LOURDES MURAD DE CAMARGO PROFESSORA
+    "907169": {
+      2: { alunos: 628, participacao: 95.44, geral: 53.89,
+        componentes: { "MAT": 56.31, "PORT": 51.97, "ING": 61.36, "HIST": 49.23, "GEO": 48.25, "CIE": 64.17, "FIN": 40.38, "TEC": 37.32 } },
+      3: { alunos: 625, participacao: 94.15, geral: 54.45,
+        componentes: { "MAT": 52.24, "PORT": 65.12, "ING": 50.24, "HIST": 49.83, "GEO": 51.38, "CIE": 52.88, "FIN": 43.15, "TEC": 40.97 } }
+    },
+    // DINORATH DO VALLE PROFESSORA
+    "436239": {
+      2: { alunos: 1000, participacao: 97.14, geral: 49.12,
+        componentes: { "MAT": 43.46, "PORT": 56.99, "ING": 49.1, "HIST": 45.01, "GEO": 54.02, "CIE": 47.35, "FILO": 43.51, "SOC": 55.44, "BIO": 52.83, "FÍS": 43.38, "QUI": 42.72, "FIN": 50.38, "TEC": 38.4 } },
+      3: { alunos: 1011, participacao: 95.37, geral: 51.7,
+        componentes: { "MAT": 48.56, "PORT": 63.39, "ING": 51.94, "HIST": 45.41, "GEO": 54.27, "CIE": 49.25, "FILO": 45.95, "SOC": 47.38, "BIO": 45.54, "FÍS": 37.04, "QUI": 35.25, "FIN": 55.91, "TEC": 39.23 } }
+    },
+    // FRANCISCO PURITA PROFESSOR
+    "28617": {
+      2: { alunos: 623, participacao: 96.27, geral: 45.2,
+        componentes: { "MAT": 42.24, "PORT": 47.86, "ING": 46.68, "HIST": 40.87, "GEO": 43.7, "CIE": 44.85, "FILO": 36.67, "SOC": 73.81, "BIO": 50.13, "FÍS": 47.18, "QUI": 47.51, "FIN": 50.8, "TEC": 46.71 } },
+      3: { alunos: 612, participacao: 92.7, geral: 53.83,
+        componentes: { "MAT": 52.0, "PORT": 59.93, "ING": 48.98, "HIST": 47.31, "GEO": 49.05, "CIE": 42.25, "FILO": 48.78, "SOC": 54.0, "BIO": 68.62, "FÍS": 61.76, "QUI": 64.5, "FIN": 59.88, "TEC": 42.96 } }
+    },
+    // DARCY FEDERICI PACHECO PROFESSOR
+    "914411": {
+      2: { alunos: 857, participacao: 92.99, geral: 47.54,
+        componentes: { "MAT": 46.73, "PORT": 52.72, "ING": 50.84, "HIST": 48.44, "GEO": 46.36, "CIE": 42.8, "FILO": 40.03, "SOC": 59.86, "BIO": 45.73, "FÍS": 46.81, "QUI": 38.51, "FIN": 41.07, "TEC": 31.19 } },
+      3: { alunos: 844, participacao: 89.35, geral: 58.45,
+        componentes: { "MAT": 59.16, "PORT": 61.93, "ING": 59.2, "HIST": 55.04, "GEO": 54.52, "CIE": 51.04, "FILO": 49.91, "SOC": 59.08, "BIO": 58.4, "FÍS": 56.42, "QUI": 49.42, "FIN": 54.58, "TEC": 48.47 } }
+    },
+    // AURELIANO MENDONCA PROFESSOR
+    "35828": {
+      2: { alunos: 450, participacao: 89.84, geral: 42.69,
+        componentes: { "MAT": 34.37, "PORT": 48.54, "ING": 46.16, "HIST": 42.0, "GEO": 47.52, "CIE": 40.15, "FILO": 38.04, "SOC": 55.25, "BIO": 51.55, "FÍS": 39.45, "QUI": 37.3, "FIN": 43.35, "TEC": 37.91 } },
+      3: { alunos: 420, participacao: 89.45, geral: 54.86,
+        componentes: { "MAT": 50.19, "PORT": 62.48, "ING": 53.17, "HIST": 50.91, "GEO": 53.79, "CIE": 46.98, "FILO": 51.23, "SOC": 41.41, "BIO": 50.39, "FÍS": 48.39, "QUI": 47.94, "FIN": 55.8, "TEC": 53.23 } }
+    },
+    // WALDEMIRO NAFFAH DOUTOR
+    "908150": {
+      2: { alunos: 1097, participacao: 90.08, geral: 44.37,
+        componentes: { "MAT": 41.18, "PORT": 50.25, "ING": 47.06, "HIST": 44.0, "GEO": 43.35, "CIE": 42.35, "FILO": 31.9, "SOC": 50.0, "BIO": 41.72, "FÍS": 46.35, "QUI": 32.32, "FIN": 41.38, "TEC": 34.92 } },
+      3: { alunos: 1041, participacao: 92.33, geral: 50.91,
+        componentes: { "MAT": 53.27, "PORT": 58.23, "ING": 44.49, "HIST": 43.51, "GEO": 43.59, "CIE": 45.97, "FILO": 27.06, "SOC": 49.7, "BIO": 52.37, "FÍS": 49.74, "QUI": 44.01, "FIN": 48.74, "TEC": 37.91 } }
+    },
+    // ALZIRA VALLE ROLEMBERG PROFESSORA
+    "908149": {
+      2: { alunos: 1115, participacao: 97.45, geral: 46.53,
+        componentes: { "MAT": 40.99, "PORT": 53.28, "ING": 47.2, "HIST": 44.03, "GEO": 50.58, "CIE": 44.08, "FILO": 36.95, "SOC": 56.82, "BIO": 50.68, "FÍS": 43.44, "QUI": 36.99, "FIN": 48.6, "TEC": 39.89 } },
+      3: { alunos: 1096, participacao: 96.08, geral: 52.34,
+        componentes: { "MAT": 49.92, "PORT": 60.85, "ING": 48.49, "HIST": 46.14, "GEO": 53.96, "CIE": 46.63, "FILO": 36.76, "SOC": 49.79, "BIO": 55.23, "FÍS": 41.11, "QUI": 45.75, "FIN": 56.53, "TEC": 43.06 } }
+    },
+    // FRANCISCO MARQUES PINTO
+    "27820": {
+      2: { alunos: 986, participacao: 91.16, geral: 38.25,
+        componentes: { "MAT": 32.17, "PORT": 44.29, "ING": 40.28, "HIST": 36.52, "GEO": 43.48, "CIE": 36.95, "FILO": 35.41, "SOC": 49.59, "BIO": 40.03, "FÍS": 34.4, "QUI": 31.64, "FIN": 36.89, "TEC": 33.29 } },
+      3: { alunos: 930, participacao: 93.05, geral: 44.78,
+        componentes: { "MAT": 41.55, "PORT": 53.58, "ING": 43.81, "HIST": 40.04, "GEO": 44.51, "CIE": 38.92, "FILO": 36.35, "SOC": 40.0, "BIO": 43.56, "FÍS": 40.05, "QUI": 35.45, "FIN": 51.04, "TEC": 28.78 } }
+    },
+    // SONIA MARIA VENTURELLI PROFESSORA
+    "919688": {
+      2: { alunos: 1020, participacao: 96.23, geral: 49.64,
+        componentes: { "MAT": 41.72, "PORT": 57.05, "ING": 52.21, "HIST": 48.91, "GEO": 51.79, "CIE": 45.23, "FILO": 58.4, "SOC": 55.54, "BIO": 53.84, "FÍS": 45.45, "QUI": 44.92, "FIN": 52.3, "TEC": 44.59 } },
+      3: { alunos: 1006, participacao: 94.29, geral: 55.07,
+        componentes: { "MAT": 54.15, "PORT": 64.62, "ING": 50.72, "HIST": 47.98, "GEO": 50.17, "CIE": 44.07, "FILO": 53.59, "SOC": 46.34, "BIO": 62.14, "FÍS": 58.07, "QUI": 58.33, "FIN": 61.65, "TEC": 41.02 } }
+    },
+    // JOAO DEOCLECIO DA SILVA RAMOS PROFESSOR DOUTOR
+    "28859": {
+      2: { alunos: 401, participacao: 94.52, geral: 48.03,
+        componentes: { "MAT": 46.24, "PORT": 52.19, "ING": 50.36, "HIST": 44.64, "GEO": 49.02, "CIE": 51.92, "FILO": 37.3, "SOC": 64.0, "BIO": 48.86, "FÍS": 40.3, "QUI": 42.71, "FIN": 44.93, "TEC": 27.88 } },
+      3: { alunos: 415, participacao: 76.57, geral: 55.58,
+        componentes: { "MAT": 55.75, "PORT": 60.93, "ING": 52.58, "HIST": 50.66, "GEO": 50.58, "CIE": 54.91, "FILO": 45.7, "SOC": 66.36, "BIO": 55.5, "FÍS": 49.15, "QUI": 47.13, "FIN": 50.3, "TEC": 31.63 } }
+    },
+    // ANTONIO DE BARROS SERRA PROFESSOR
+    "28769": {
+      2: { alunos: 1021, participacao: 93.27, geral: 41.73,
+        componentes: { "MAT": 36.85, "PORT": 46.54, "ING": 42.56, "HIST": 40.28, "GEO": 44.54, "CIE": 42.9, "FILO": 36.52, "SOC": 47.75, "BIO": 44.3, "FÍS": 34.38, "QUI": 38.97, "FIN": 43.12, "TEC": 40.09 } },
+      3: { alunos: 975, participacao: 86.9, geral: 42.18,
+        componentes: { "MAT": 39.18, "PORT": 50.77, "ING": 39.3, "HIST": 39.07, "GEO": 42.66, "CIE": 40.59, "FILO": 33.87, "SOC": 35.62, "BIO": 34.53, "FÍS": 29.76, "QUI": 32.93, "FIN": 41.06, "TEC": 38.33 } }
+    }
+  }
 };
